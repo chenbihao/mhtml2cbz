@@ -14,7 +14,16 @@
   },
   "files": ["dist"],
   "keywords": ["mhtml", "cbz", "comic", "converter"],
+  "author": "chenbihao",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chenbihao/mhtml2cbz.git"
+  },
+  "bugs": {
+    "url": "https://github.com/chenbihao/mhtml2cbz/issues"
+  },
+  "homepage": "https://github.com/chenbihao/mhtml2cbz#readme",
   "dependencies": {
     "commander": "^13.1.0",
     "jszip": "^3.10.1"
