@@ -76,7 +76,7 @@ function getImagePartByCid(doc, cid) {
 function getImagePartByUrl(doc, url) {
     return doc.parts.find((p) => p.contentLocation === url && typeof p.rawBody !== "string");
 }
-async function downloadImage(url, timeout, proxyUrl) {
+async function downloadImage(url, timeout, proxyUrl, logger) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
     try {
@@ -87,7 +87,11 @@ async function downloadImage(url, timeout, proxyUrl) {
         }
         const response = await fetch(url, fetchOptions);
         if (!response.ok) {
-            console.warn(`警告：下载失败 "${url}"：HTTP ${response.status}，跳过`);
+            const msg = `警告：下载失败 "${url}"：HTTP ${response.status}，跳过`;
+            if (logger)
+                await logger.error(msg);
+            else
+                console.warn(msg);
             return null;
         }
         const arrayBuffer = await response.arrayBuffer();
@@ -101,7 +105,11 @@ async function downloadImage(url, timeout, proxyUrl) {
     catch (err) {
         clearTimeout(timeoutId);
         const msg = err instanceof Error ? err.message : String(err);
-        console.warn(`警告：下载失败 "${url}"：${msg}，跳过`);
+        const logMsg = `警告：下载失败 "${url}"：${msg}，跳过`;
+        if (logger)
+            await logger.error(logMsg);
+        else
+            console.warn(logMsg);
         return null;
     }
 }
@@ -111,6 +119,7 @@ export async function extractImages(doc, options) {
         throw new Error("MHTML 文件中未找到 HTML 内容");
     }
     const html = htmlPart.body;
+    const logger = options?.logger;
     // 优先尝试 cid: 引用方式，其次尝试 URL 引用方式
     const cidRefs = extractCidOrder(html);
     const urlRefs = cidRefs.length > 0 ? [] : extractUrlOrder(html);
@@ -131,10 +140,18 @@ export async function extractImages(doc, options) {
             : getImagePartByUrl(doc, ref);
         // 如果未找到图片且启用下载，尝试从 URL 下载
         if (!imagePart && downloadMissing && refs.type === "url") {
-            console.warn(`警告：未找到图片 "${ref}"，正在尝试下载...`);
-            const downloaded = await downloadImage(ref, timeout, options?.proxyUrl);
+            const warnMsg = `警告：未找到图片 "${ref}"，正在尝试下载...`;
+            if (logger)
+                await logger.info(warnMsg);
+            else
+                console.warn(warnMsg);
+            const downloaded = await downloadImage(ref, timeout, options?.proxyUrl, logger);
             if (downloaded) {
-                console.warn(`已下载：${ref}`);
+                const successMsg = `已下载：${ref}`;
+                if (logger)
+                    await logger.info(successMsg);
+                else
+                    console.warn(successMsg);
                 imagePart = {
                     headers: {},
                     body: "",
@@ -147,7 +164,11 @@ export async function extractImages(doc, options) {
             }
         }
         if (!imagePart) {
-            console.warn(`警告：未找到图片 "${ref}"，跳过`);
+            const warnMsg = `警告：未找到图片 "${ref}"，跳过`;
+            if (logger)
+                await logger.error(warnMsg);
+            else
+                console.warn(warnMsg);
             continue;
         }
         const mimeType = getMimeType(imagePart.contentType);

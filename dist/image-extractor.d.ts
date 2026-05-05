@@ -1,4 +1,5 @@
 import type { MhtmlDocument } from "./mhtml-parser.js";
+import type { Logger } from "./logger.js";
 export interface ExtractedImage {
     readonly data: Buffer;
     readonly filename: string;
@@ -9,5 +10,6 @@ export interface ExtractOptions {
     readonly downloadMissing?: boolean;
     readonly timeout?: number;
     readonly proxyUrl?: string;
+    readonly logger?: Logger;
 }
 export declare function extractImages(doc: MhtmlDocument, options?: ExtractOptions): Promise<readonly ExtractedImage[]>;

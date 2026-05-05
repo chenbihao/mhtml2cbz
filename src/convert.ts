@@ -12,6 +12,7 @@ export interface ConvertOptions {
   readonly downloadMissing?: boolean;
   readonly downloadTimeout?: number;
   readonly proxyUrl?: string;
+  readonly downloadRetries?: number;
 }
 
 function cleanFileName(name: string, patterns: readonly string[]): string {
@@ -54,6 +55,8 @@ export async function convertMhtmlToCbz(
     downloadMissing: options.downloadMissing,
     timeout: options.downloadTimeout,
     proxyUrl: options.proxyUrl,
+    logger: options.logger,
+    retries: options.downloadRetries,
   });
 
   if (images.length === 0) {

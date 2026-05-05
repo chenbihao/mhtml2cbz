@@ -70,7 +70,8 @@ program
   .option("-l, --log [path]", "启用日志记录。可选参数：留空=当前目录+时间命名；目录/=指定目录+时间命名；完整路径=使用指定文件")
   .option("-d, --download-missing [proxy]", "当图片缺失时自动从 URL 下载补全，可指定代理URL（如 127.0.0.1:7890）")
   .option("--timeout <ms>", "下载超时时间（毫秒），默认 30000", (value) => Number.parseInt(value, 10), 30000)
-  .action(async (inputs: string[], options: { output: string; move?: string; rename: string[]; log?: string | true; downloadMissing?: boolean | string; timeout: number }) => {
+  .option("--retries <n>", "下载失败重试次数，默认 3", (value) => Number.parseInt(value, 10), 3)
+  .action(async (inputs: string[], options: { output: string; move?: string; rename: string[]; log?: string | true; downloadMissing?: boolean | string; timeout: number; retries: number }) => {
     const outputDir = resolve(options.output);
     const moveDir = options.move ? resolve(options.move) : null;
     const renamePatterns = options.rename;
@@ -79,6 +80,7 @@ program
       ? (options.downloadMissing.includes('://') ? options.downloadMissing : `http://${options.downloadMissing}`)
       : undefined;
     const downloadTimeout = options.timeout;
+    const downloadRetries = options.retries;
 
     // 初始化日志记录器
     const logger: Logger = options.log !== undefined
@@ -108,7 +110,7 @@ program
       const name = basename(files[i]);
       try {
         await logger.info(`[${i + 1}/${total}] 转换: ${name} ...`);
-        const outputPath = await convertMhtmlToCbz(files[i], { outputDir, renamePatterns, logger, downloadMissing, downloadTimeout, proxyUrl });
+        const outputPath = await convertMhtmlToCbz(files[i], { outputDir, renamePatterns, logger, downloadMissing, downloadTimeout, proxyUrl, downloadRetries });
         await logger.info(`  ✓ -> ${outputPath}`);
         succeeded.push(files[i]);
         success++;

@@ -96,6 +96,12 @@ mhtml2cbz 漫画.mhtml -o ./output -d http://127.0.0.1:7890
 
 # 自定义下载超时时间（默认 30 秒）
 mhtml2cbz 漫画.mhtml -o ./output -d --timeout 60000
+
+# 自定义下载重试次数（默认 3 次）
+mhtml2cbz 漫画.mhtml -o ./output -d --retries 5
+
+# 完整示例：代理 + 超时 + 重试
+mhtml2cbz 漫画.mhtml -o ./output -d 127.0.0.1:7890 --timeout 60000 --retries 5
 ```
 
 ### 参数
@@ -108,6 +114,7 @@ mhtml2cbz 漫画.mhtml -o ./output -d --timeout 60000
 | `-r, --rename <pattern>` | 移除文件名中的指定字符串（可多次使用，自动去除首尾空格） |
 | `-d, --download-missing [proxy]` | 当图片缺失时自动从 URL 下载补全，可选代理URL（如 `127.0.0.1:7890`） |
 | `--timeout <ms>` | 下载超时时间（毫秒），默认 30000 |
+| `--retries <n>` | 下载失败重试次数，默认 3 |
 | `-l, --log [path]` | 启用日志记录。可选参数：留空=当前目录+时间命名；`目录/`=指定目录+时间命名；完整路径=使用指定文件名 |
 | `-v, --version` | 显示版本号 |
 | `-h, --help` | 显示帮助信息 |
