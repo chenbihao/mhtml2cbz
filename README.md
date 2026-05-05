@@ -16,24 +16,37 @@
 
 ## 安装
 
-### 开发使用
+### 直接使用（无需克隆仓库）
 
 ```bash
-npm install
-npx tsx src/index.ts 文件.mhtml -o 输出目录
+npx github:chenbihao/mhtml2cbz -o ./输出目录
 ```
 
 ### 全局安装
 
 ```bash
-npm run build
+# 从 GitHub 安装
+npx github:chenbihao/mhtml2cbz -g
+
+# 或克隆后本地安装
+git clone https://github.com/chenbihao/mhtml2cbz.git
+cd mhtml2cbz
 npm install -g .
 ```
 
-之后即可在任意目录使用 `mhtml2cbz` 命令。卸载：
+卸载：
 
 ```bash
 npm uninstall -g mhtml2cbz
+```
+
+### 开发使用
+
+```bash
+git clone https://github.com/chenbihao/mhtml2cbz.git
+cd mhtml2cbz
+npm install
+npx tsx src/index.ts 文件.mhtml -o 输出目录
 ```
 
 ## 使用
