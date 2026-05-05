@@ -6,16 +6,13 @@
 
 ## 功能
 
-- 自动解析 MHTML 中的 MIME 多部分结构
-- 按 HTML 中 `<img>` 标签的出现顺序排列图片
-- 支持 `cid:` 和 URL 两种图片引用方式
 - 保留原始图片格式（webp、png、jpg 等）
-- 支持缺失图片自动从 URL 下载补全
 - 支持传入文件夹路径，自动扫描其下所有 `.mhtml` 文件
+- 支持文件名清理，移除指定字符串
 - 支持单文件和批量转换
 - 转换完成后可自动将原文件移动到指定目录
-- 支持文件名清理，移除指定字符串
 - 支持日志记录功能，便于追踪转换过程
+- 支持缺失图片自动从 URL 下载补全
 
 ## 安装
 
@@ -30,7 +27,7 @@ npx github:chenbihao/mhtml2cbz -o ./输出目录
 ```bash
 # npm安装
 npm install -g mhtml2cbz
-#验证：
+# 验证：
 mhtml2cbz -h
 
 # 克隆后本地安装
@@ -54,6 +51,22 @@ cd mhtml2cbz
 npm install
 npx tsx src/index.ts 文件.mhtml -o 输出目录
 ```
+
+### 参数
+
+| 参数 | 说明 |
+|------|------|
+| `[input...]` | MHTML 文件或文件夹路径。默认当前目录下所有 `.mhtml` 文件 |
+| `-o, --output <dir>` | **（必填）** 输出目录 |
+| `-m, --move <dir>` | 转换成功后将原 MHTML 文件移动到指定目录 |
+| `-r, --rename <pattern>` | 移除文件名中的指定字符串（可多次使用，自动去除首尾空格） |
+| `-d, --download-missing [proxy]` | 当图片缺失时自动从 URL 下载补全，可选代理URL（如 `127.0.0.1:7890`） |
+| `--timeout <ms>` | 下载超时时间（毫秒），默认 30000 |
+| `--retries <n>` | 下载失败重试次数，默认 3 |
+| `-l, --log [path]` | 启用日志记录。可选参数：留空=当前目录+时间命名；`目录/`=指定目录+时间命名；完整路径=使用指定文件名 |
+| `-v, --version` | 显示版本号 |
+| `-h, --help` | 显示帮助信息 |
+
 
 ## 使用
 
@@ -104,21 +117,6 @@ mhtml2cbz 漫画.mhtml -o ./output -d --retries 5
 mhtml2cbz 漫画.mhtml -o ./output -d 127.0.0.1:7890 --timeout 60000 --retries 5
 ```
 
-### 参数
-
-| 参数 | 说明 |
-|------|------|
-| `[input...]` | MHTML 文件或文件夹路径。默认当前目录下所有 `.mhtml` 文件 |
-| `-o, --output <dir>` | **（必填）** 输出目录 |
-| `-m, --move <dir>` | 转换成功后将原 MHTML 文件移动到指定目录 |
-| `-r, --rename <pattern>` | 移除文件名中的指定字符串（可多次使用，自动去除首尾空格） |
-| `-d, --download-missing [proxy]` | 当图片缺失时自动从 URL 下载补全，可选代理URL（如 `127.0.0.1:7890`） |
-| `--timeout <ms>` | 下载超时时间（毫秒），默认 30000 |
-| `--retries <n>` | 下载失败重试次数，默认 3 |
-| `-l, --log [path]` | 启用日志记录。可选参数：留空=当前目录+时间命名；`目录/`=指定目录+时间命名；完整路径=使用指定文件名 |
-| `-v, --version` | 显示版本号 |
-| `-h, --help` | 显示帮助信息 |
-
 ## 项目结构
 
 ```
@@ -136,6 +134,7 @@ src/
 - TypeScript + Node.js (ESM)
 - [commander](https://github.com/tj/commander.js) — CLI 框架
 - [JSZip](https://github.com/Stuk/jszip) — ZIP 打包
+- [undici](https://github.com/nodejs/undici) — HTTP 客户端（支持代理、自动重试）
 
 ## License
 

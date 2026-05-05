@@ -56,7 +56,7 @@ const program = new Command();
 program
     .name("mhtml2cbz")
     .description("将 MHTML 文件转换为 CBZ 漫画档案格式")
-    .version("2.0.0", "-v, --version")
+    .version("2.0.1", "-v, --version")
     .argument("[input...]", "MHTML 文件路径，默认当前目录 *.mhtml")
     .requiredOption("-o, --output <dir>", "输出目录")
     .option("-m, --move <dir>", "转换成功后将原 MHTML 文件移动到指定目录")
@@ -64,6 +64,7 @@ program
     .option("-l, --log [path]", "启用日志记录。可选参数：留空=当前目录+时间命名；目录/=指定目录+时间命名；完整路径=使用指定文件")
     .option("-d, --download-missing [proxy]", "当图片缺失时自动从 URL 下载补全，可指定代理URL（如 127.0.0.1:7890）")
     .option("--timeout <ms>", "下载超时时间（毫秒），默认 30000", (value) => Number.parseInt(value, 10), 30000)
+    .option("--retries <n>", "下载失败重试次数，默认 3", (value) => Number.parseInt(value, 10), 3)
     .action(async (inputs, options) => {
     const outputDir = resolve(options.output);
     const moveDir = options.move ? resolve(options.move) : null;
@@ -73,6 +74,7 @@ program
         ? (options.downloadMissing.includes('://') ? options.downloadMissing : `http://${options.downloadMissing}`)
         : undefined;
     const downloadTimeout = options.timeout;
+    const downloadRetries = options.retries;
     // 初始化日志记录器
     const logger = options.log !== undefined
         ? await createLogger(resolveLogPath(options.log === true ? undefined : options.log))
@@ -96,7 +98,7 @@ program
         const name = basename(files[i]);
         try {
             await logger.info(`[${i + 1}/${total}] 转换: ${name} ...`);
-            const outputPath = await convertMhtmlToCbz(files[i], { outputDir, renamePatterns, logger, downloadMissing, downloadTimeout, proxyUrl });
+            const outputPath = await convertMhtmlToCbz(files[i], { outputDir, renamePatterns, logger, downloadMissing, downloadTimeout, proxyUrl, downloadRetries });
             await logger.info(`  ✓ -> ${outputPath}`);
             succeeded.push(files[i]);
             success++;

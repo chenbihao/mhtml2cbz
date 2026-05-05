@@ -11,5 +11,6 @@ export interface ExtractOptions {
     readonly timeout?: number;
     readonly proxyUrl?: string;
     readonly logger?: Logger;
+    readonly retries?: number;
 }
 export declare function extractImages(doc: MhtmlDocument, options?: ExtractOptions): Promise<readonly ExtractedImage[]>;
