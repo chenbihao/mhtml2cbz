@@ -25,10 +25,7 @@ npx github:chenbihao/mhtml2cbz -o ./输出目录
 ### 全局安装
 
 ```bash
-# 从 GitHub 安装
-npm install -g github:chenbihao/mhtml2cbz
-
-# 或克隆后本地安装
+# 克隆后本地安装
 git clone https://github.com/chenbihao/mhtml2cbz.git
 cd mhtml2cbz
 npm install -g .
