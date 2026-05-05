@@ -55,7 +55,7 @@ const program = new Command();
 program
     .name("mhtml2cbz")
     .description("将 MHTML 文件转换为 CBZ 漫画档案格式")
-    .version("1.0.1")
+    .version("1.0.3", "-v, --version")
     .argument("[input...]", "MHTML 文件路径，默认当前目录 *.mhtml")
     .requiredOption("-o, --output <dir>", "输出目录")
     .option("-m, --move <dir>", "转换成功后将原 MHTML 文件移动到指定目录")
