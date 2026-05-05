@@ -10,6 +10,7 @@
 - 按 HTML 中 `<img>` 标签的出现顺序排列图片
 - 支持 `cid:` 和 URL 两种图片引用方式
 - 保留原始图片格式（webp、png、jpg 等）
+- 支持缺失图片自动从 URL 下载补全
 - 支持传入文件夹路径，自动扫描其下所有 `.mhtml` 文件
 - 支持单文件和批量转换
 - 转换完成后可自动将原文件移动到指定目录
@@ -83,6 +84,12 @@ mhtml2cbz -o ./输出目录 -l ./logs/convert.log
 
 # 清理文件名（移除指定字符串）
 mhtml2cbz *.mhtml -o ./output -r "［XX漫画组］" -r "（高清）"
+
+# 启用缺失图片自动下载（当 MHTML 中部分图片未嵌入时）
+mhtml2cbz 漫画.mhtml -o ./output -d
+
+# 自定义下载超时时间（默认 30 秒）
+mhtml2cbz 漫画.mhtml -o ./output -d --timeout 60000
 ```
 
 ### 参数
@@ -93,6 +100,8 @@ mhtml2cbz *.mhtml -o ./output -r "［XX漫画组］" -r "（高清）"
 | `-o, --output <dir>` | **（必填）** 输出目录 |
 | `-m, --move <dir>` | 转换成功后将原 MHTML 文件移动到指定目录 |
 | `-r, --rename <pattern>` | 移除文件名中的指定字符串（可多次使用，自动去除首尾空格） |
+| `-d, --download-missing` | 当图片缺失时自动从 URL 下载补全 |
+| `--timeout <ms>` | 下载超时时间（毫秒），默认 30000 |
 | `-l, --log [path]` | 启用日志记录。可选参数：留空=当前目录+时间命名；`目录/`=指定目录+时间命名；完整路径=使用指定文件名 |
 | `-v, --version` | 显示版本号 |
 | `-h, --help` | 显示帮助信息 |

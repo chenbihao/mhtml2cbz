@@ -9,6 +9,8 @@ export interface ConvertOptions {
   readonly outputDir: string;
   readonly renamePatterns?: readonly string[];
   readonly logger?: Logger;
+  readonly downloadMissing?: boolean;
+  readonly downloadTimeout?: number;
 }
 
 function cleanFileName(name: string, patterns: readonly string[]): string {
@@ -47,7 +49,10 @@ export async function convertMhtmlToCbz(
   await mkdir(options.outputDir, { recursive: true });
 
   const doc = await parseMhtml(inputPath);
-  const images = extractImages(doc);
+  const images = await extractImages(doc, {
+    downloadMissing: options.downloadMissing,
+    timeout: options.downloadTimeout,
+  });
 
   if (images.length === 0) {
     throw new Error("文件中未提取到任何图片，可能不是有效的漫画页面");

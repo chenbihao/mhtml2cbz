@@ -5,4 +5,8 @@ export interface ExtractedImage {
     readonly contentType: string;
     readonly index: number;
 }
-export declare function extractImages(doc: MhtmlDocument): readonly ExtractedImage[];
+export interface ExtractOptions {
+    readonly downloadMissing?: boolean;
+    readonly timeout?: number;
+}
+export declare function extractImages(doc: MhtmlDocument, options?: ExtractOptions): Promise<readonly ExtractedImage[]>;

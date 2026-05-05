@@ -8,6 +8,11 @@ export interface ExtractedImage {
   readonly index: number;
 }
 
+export interface ExtractOptions {
+  readonly downloadMissing?: boolean;
+  readonly timeout?: number;
+}
+
 const IMG_CID_RE = /<img[^>]+src\s*=\s*["']cid:([^"']+)["'][^>]*>/gi;
 const IMG_URL_RE = /<img[^>]+src\s*=\s*["'](https?:\/\/[^"']+)["'][^>]*>/gi;
 
@@ -105,7 +110,38 @@ function getImagePartByUrl(
   );
 }
 
-export function extractImages(doc: MhtmlDocument): readonly ExtractedImage[] {
+async function downloadImage(
+  url: string,
+  timeout: number
+): Promise<{ data: Buffer; contentType: string } | null> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    if (!response.ok) {
+      console.warn(`警告：下载失败 "${url}"：HTTP ${response.status}，跳过`);
+      return null;
+    }
+    const arrayBuffer = await response.arrayBuffer();
+    const contentType = response.headers.get("content-type") ?? "image/jpeg";
+    clearTimeout(timeoutId);
+    return {
+      data: Buffer.from(arrayBuffer),
+      contentType,
+    };
+  } catch (err) {
+    clearTimeout(timeoutId);
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn(`警告：下载失败 "${url}"：${msg}，跳过`);
+    return null;
+  }
+}
+
+export async function extractImages(
+  doc: MhtmlDocument,
+  options?: ExtractOptions
+): Promise<readonly ExtractedImage[]> {
   const htmlPart = getHtmlPart(doc);
   if (!htmlPart) {
     throw new Error("MHTML 文件中未找到 HTML 内容");
@@ -128,13 +164,36 @@ export function extractImages(doc: MhtmlDocument): readonly ExtractedImage[] {
 
   const totalDigits = String(refs.values.length).length;
   const images: ExtractedImage[] = [];
+  const downloadMissing = options?.downloadMissing ?? false;
+  const timeout = options?.timeout ?? 30000;
 
   for (let i = 0; i < refs.values.length; i++) {
     const ref = refs.values[i];
-    const imagePart =
+    let imagePart:
+      | (MhtmlPart & { rawBody: Buffer })
+      | null
+      | undefined =
       refs.type === "cid"
         ? getImagePartByCid(doc, ref)
         : getImagePartByUrl(doc, ref);
+
+    // 如果未找到图片且启用下载，尝试从 URL 下载
+    if (!imagePart && downloadMissing && refs.type === "url") {
+      console.warn(`警告：未找到图片 "${ref}"，正在尝试下载...`);
+      const downloaded = await downloadImage(ref, timeout);
+      if (downloaded) {
+        console.warn(`已下载：${ref}`);
+        imagePart = {
+          headers: {},
+          body: "",
+          rawBody: downloaded.data,
+          contentType: downloaded.contentType,
+          contentId: "",
+          contentLocation: ref,
+          contentTransferEncoding: "binary",
+        } as MhtmlPart & { rawBody: Buffer };
+      }
+    }
 
     if (!imagePart) {
       console.warn(`警告：未找到图片 "${ref}"，跳过`);
