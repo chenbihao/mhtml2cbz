@@ -65,9 +65,11 @@ program
   .argument("[input...]", "MHTML 文件路径，默认当前目录 *.mhtml")
   .requiredOption("-o, --output <dir>", "输出目录")
   .option("-m, --move <dir>", "转换成功后将原 MHTML 文件移动到指定目录")
-  .action(async (inputs: string[], options: { output: string; move?: string }) => {
+  .option("-r, --rename <pattern>", "移除文件名中的指定字符串（可多次使用）", (value, prev: string[]) => [...prev, value], [] as string[])
+  .action(async (inputs: string[], options: { output: string; move?: string; rename: string[] }) => {
     const outputDir = resolve(options.output);
     const moveDir = options.move ? resolve(options.move) : null;
+    const renamePatterns = options.rename;
 
     const patterns = inputs.length > 0 ? inputs : ["*.mhtml"];
     const files = await expandMhtmlFiles(patterns);
@@ -91,7 +93,7 @@ program
       const name = basename(files[i]);
       try {
         console.log(`[${i + 1}/${total}] 转换: ${name} ...`);
-        const outputPath = await convertMhtmlToCbz(files[i], { outputDir });
+        const outputPath = await convertMhtmlToCbz(files[i], { outputDir, renamePatterns });
         console.log(`  ✓ -> ${outputPath}`);
         succeeded.push(files[i]);
         success++;

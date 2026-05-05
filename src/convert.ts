@@ -6,6 +6,15 @@ import { createCbz } from "./cbz-packer.js";
 
 export interface ConvertOptions {
   readonly outputDir: string;
+  readonly renamePatterns?: readonly string[];
+}
+
+function cleanFileName(name: string, patterns: readonly string[]): string {
+  let result = name;
+  for (const pattern of patterns) {
+    result = result.replaceAll(pattern, "");
+  }
+  return result.trim();
 }
 
 export async function convertMhtmlToCbz(
@@ -30,7 +39,8 @@ export async function convertMhtmlToCbz(
   }
 
   const mhtmlName = basename(inputPath, ".mhtml");
-  const outputPath = join(options.outputDir, `${mhtmlName}.cbz`);
+  const cleanedName = cleanFileName(mhtmlName, options.renamePatterns ?? []);
+  const outputPath = join(options.outputDir, `${cleanedName}.cbz`);
 
   await mkdir(options.outputDir, { recursive: true });
 

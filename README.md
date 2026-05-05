@@ -13,6 +13,7 @@
 - 支持传入文件夹路径，自动扫描其下所有 `.mhtml` 文件
 - 支持单文件和批量转换
 - 转换完成后可自动将原文件移动到指定目录
+- 支持文件名清理，移除指定字符串
 
 ## 安装
 
@@ -33,6 +34,7 @@ mhtml2cbz -h
 # 克隆后本地安装
 git clone https://github.com/chenbihao/mhtml2cbz.git
 cd mhtml2cbz
+npm run build
 npm install -g .
 ```
 
@@ -68,6 +70,9 @@ mhtml2cbz "*.mhtml" -o ./输出目录
 
 # 转换后移动原文件到指定目录
 mhtml2cbz -o ./cbz输出 -m ./已转换
+
+# 清理文件名（移除指定字符串）
+mhtml2cbz *.mhtml -o ./output -r "［XX漫画组］" -r "（高清）"
 ```
 
 ### 参数
@@ -77,6 +82,7 @@ mhtml2cbz -o ./cbz输出 -m ./已转换
 | `[input...]` | MHTML 文件或文件夹路径。默认当前目录下所有 `.mhtml` 文件 |
 | `-o, --output <dir>` | **（必填）** 输出目录 |
 | `-m, --move <dir>` | 转换成功后将原 MHTML 文件移动到指定目录 |
+| `-r, --rename <pattern>` | 移除文件名中的指定字符串（可多次使用，自动去除首尾空格） |
 | `-v, --version` | 显示版本号 |
 | `-h, --help` | 显示帮助信息 |
 

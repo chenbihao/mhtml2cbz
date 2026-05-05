@@ -3,6 +3,13 @@ import { basename, extname, join } from "node:path";
 import { parseMhtml } from "./mhtml-parser.js";
 import { extractImages } from "./image-extractor.js";
 import { createCbz } from "./cbz-packer.js";
+function cleanFileName(name, patterns) {
+    let result = name;
+    for (const pattern of patterns) {
+        result = result.replaceAll(pattern, "");
+    }
+    return result.trim();
+}
 export async function convertMhtmlToCbz(inputPath, options) {
     // 校验输入文件
     try {
@@ -20,7 +27,8 @@ export async function convertMhtmlToCbz(inputPath, options) {
         throw new Error("文件为空，无法解析");
     }
     const mhtmlName = basename(inputPath, ".mhtml");
-    const outputPath = join(options.outputDir, `${mhtmlName}.cbz`);
+    const cleanedName = cleanFileName(mhtmlName, options.renamePatterns ?? []);
+    const outputPath = join(options.outputDir, `${cleanedName}.cbz`);
     await mkdir(options.outputDir, { recursive: true });
     const doc = await parseMhtml(inputPath);
     const images = extractImages(doc);
