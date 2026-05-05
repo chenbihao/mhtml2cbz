@@ -5,5 +5,6 @@ export interface ConvertOptions {
     readonly logger?: Logger;
     readonly downloadMissing?: boolean;
     readonly downloadTimeout?: number;
+    readonly proxyUrl?: string;
 }
 export declare function convertMhtmlToCbz(inputPath: string, options: ConvertOptions): Promise<string>;

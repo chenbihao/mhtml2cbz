@@ -1,4 +1,5 @@
 import { getHtmlPart } from "./mhtml-parser.js";
+import { ProxyAgent, fetch } from "undici";
 const IMG_CID_RE = /<img[^>]+src\s*=\s*["']cid:([^"']+)["'][^>]*>/gi;
 const IMG_URL_RE = /<img[^>]+src\s*=\s*["'](https?:\/\/[^"']+)["'][^>]*>/gi;
 const EXTENSION_MAP = {
@@ -75,11 +76,16 @@ function getImagePartByCid(doc, cid) {
 function getImagePartByUrl(doc, url) {
     return doc.parts.find((p) => p.contentLocation === url && typeof p.rawBody !== "string");
 }
-async function downloadImage(url, timeout) {
+async function downloadImage(url, timeout, proxyUrl) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
     try {
-        const response = await fetch(url, { signal: controller.signal });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const fetchOptions = { signal: controller.signal };
+        if (proxyUrl) {
+            fetchOptions.dispatcher = new ProxyAgent(proxyUrl);
+        }
+        const response = await fetch(url, fetchOptions);
         if (!response.ok) {
             console.warn(`警告：下载失败 "${url}"：HTTP ${response.status}，跳过`);
             return null;
@@ -126,7 +132,7 @@ export async function extractImages(doc, options) {
         // 如果未找到图片且启用下载，尝试从 URL 下载
         if (!imagePart && downloadMissing && refs.type === "url") {
             console.warn(`警告：未找到图片 "${ref}"，正在尝试下载...`);
-            const downloaded = await downloadImage(ref, timeout);
+            const downloaded = await downloadImage(ref, timeout, options?.proxyUrl);
             if (downloaded) {
                 console.warn(`已下载：${ref}`);
                 imagePart = {

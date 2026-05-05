@@ -33,7 +33,8 @@
   "homepage": "https://github.com/chenbihao/mhtml2cbz#readme",
   "dependencies": {
     "commander": "^13.1.0",
-    "jszip": "^3.10.1"
+    "jszip": "^3.10.1",
+    "undici": "^8.2.0"
   },
   "devDependencies": {
     "@types/node": "^22.15.0",

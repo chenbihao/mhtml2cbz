@@ -62,13 +62,16 @@ program
     .option("-m, --move <dir>", "转换成功后将原 MHTML 文件移动到指定目录")
     .option("-r, --rename <pattern>", "移除文件名中的指定字符串（可多次使用）", (value, prev) => [...prev, value], [])
     .option("-l, --log [path]", "启用日志记录。可选参数：留空=当前目录+时间命名；目录/=指定目录+时间命名；完整路径=使用指定文件")
-    .option("-d, --download-missing", "当图片缺失时自动从 URL 下载补全")
+    .option("-d, --download-missing [proxy]", "当图片缺失时自动从 URL 下载补全，可指定代理URL（如 127.0.0.1:7890）")
     .option("--timeout <ms>", "下载超时时间（毫秒），默认 30000", (value) => Number.parseInt(value, 10), 30000)
     .action(async (inputs, options) => {
     const outputDir = resolve(options.output);
     const moveDir = options.move ? resolve(options.move) : null;
     const renamePatterns = options.rename;
-    const downloadMissing = options.downloadMissing ?? false;
+    const downloadMissing = options.downloadMissing !== undefined;
+    const proxyUrl = typeof options.downloadMissing === 'string' && options.downloadMissing
+        ? (options.downloadMissing.includes('://') ? options.downloadMissing : `http://${options.downloadMissing}`)
+        : undefined;
     const downloadTimeout = options.timeout;
     // 初始化日志记录器
     const logger = options.log !== undefined
@@ -93,7 +96,7 @@ program
         const name = basename(files[i]);
         try {
             await logger.info(`[${i + 1}/${total}] 转换: ${name} ...`);
-            const outputPath = await convertMhtmlToCbz(files[i], { outputDir, renamePatterns, logger, downloadMissing, downloadTimeout });
+            const outputPath = await convertMhtmlToCbz(files[i], { outputDir, renamePatterns, logger, downloadMissing, downloadTimeout, proxyUrl });
             await logger.info(`  ✓ -> ${outputPath}`);
             succeeded.push(files[i]);
             success++;

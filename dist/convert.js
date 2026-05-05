@@ -34,6 +34,7 @@ export async function convertMhtmlToCbz(inputPath, options) {
     const images = await extractImages(doc, {
         downloadMissing: options.downloadMissing,
         timeout: options.downloadTimeout,
+        proxyUrl: options.proxyUrl,
     });
     if (images.length === 0) {
         throw new Error("文件中未提取到任何图片，可能不是有效的漫画页面");

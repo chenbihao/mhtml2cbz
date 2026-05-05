@@ -8,5 +8,6 @@ export interface ExtractedImage {
 export interface ExtractOptions {
     readonly downloadMissing?: boolean;
     readonly timeout?: number;
+    readonly proxyUrl?: string;
 }
 export declare function extractImages(doc: MhtmlDocument, options?: ExtractOptions): Promise<readonly ExtractedImage[]>;
