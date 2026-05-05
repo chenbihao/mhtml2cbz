@@ -1,5 +1,4 @@
 node_modules/
-dist/
 *.tgz
 output/
 测试文件/
