@@ -1,6 +1,6 @@
 {
   "name": "mhtml2cbz",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "将 MHTML 文件转换为 CBZ 漫画档案格式",
   "type": "module",
   "main": "dist/index.js",
