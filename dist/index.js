@@ -3,6 +3,7 @@ import { mkdir, readdir, rename, stat } from "node:fs/promises";
 import { basename, join, resolve } from "node:path";
 import { Command } from "commander";
 import { convertMhtmlToCbz } from "./convert.js";
+import { createLogger, resolveLogPath, nullLogger } from "./logger.js";
 const GLOB_CHARS = /[.+^${}()|[\]\\]/g;
 function globToRegex(pattern) {
     const escaped = pattern.replaceAll(GLOB_CHARS, String.raw `\$&`);
@@ -36,18 +37,18 @@ async function expandMhtmlFiles(patterns) {
     const results = await Promise.all(patterns.map(resolvePathOrDir));
     return results.flat();
 }
-async function moveFiles(files, moveDir) {
-    console.log(`\n移动已转换文件到: ${moveDir}`);
+async function moveFiles(files, moveDir, logger) {
+    await logger.info(`\n移动已转换文件到: ${moveDir}`);
     for (const file of files) {
         const name = basename(file);
         const dest = join(moveDir, name);
         try {
             await rename(file, dest);
-            console.log(`  ✓ ${name}`);
+            await logger.info(`  ✓ ${name}`);
         }
         catch (err) {
             const msg = err instanceof Error ? err.message : String(err);
-            console.error(`  ✗ 移动失败 ${name}: ${msg}`);
+            await logger.error(`  ✗ 移动失败 ${name}: ${msg}`);
         }
     }
 }
@@ -60,18 +61,24 @@ program
     .requiredOption("-o, --output <dir>", "输出目录")
     .option("-m, --move <dir>", "转换成功后将原 MHTML 文件移动到指定目录")
     .option("-r, --rename <pattern>", "移除文件名中的指定字符串（可多次使用）", (value, prev) => [...prev, value], [])
+    .option("-l, --log [path]", "启用日志记录。可选参数：留空=当前目录+时间命名；目录/=指定目录+时间命名；完整路径=使用指定文件")
     .action(async (inputs, options) => {
     const outputDir = resolve(options.output);
     const moveDir = options.move ? resolve(options.move) : null;
     const renamePatterns = options.rename;
+    // 初始化日志记录器
+    const logger = options.log !== undefined
+        ? await createLogger(resolveLogPath(options.log === true ? undefined : options.log))
+        : nullLogger;
     const patterns = inputs.length > 0 ? inputs : ["*.mhtml"];
     const files = await expandMhtmlFiles(patterns);
     if (files.length === 0) {
-        console.error("错误: 当前目录下未找到 .mhtml 文件");
-        console.error("提示: 请指定文件路径，或在包含 .mhtml 文件的目录下运行");
+        await logger.error("错误: 当前目录下未找到 .mhtml 文件");
+        await logger.error("提示: 请指定文件路径，或在包含 .mhtml 文件的目录下运行");
+        await logger.close();
         process.exit(1);
     }
-    console.log(`找到 ${files.length} 个文件待转换\n`);
+    await logger.info(`找到 ${files.length} 个文件待转换\n`);
     if (moveDir)
         await mkdir(moveDir, { recursive: true });
     const succeeded = [];
@@ -81,22 +88,23 @@ program
     for (let i = 0; i < total; i++) {
         const name = basename(files[i]);
         try {
-            console.log(`[${i + 1}/${total}] 转换: ${name} ...`);
-            const outputPath = await convertMhtmlToCbz(files[i], { outputDir, renamePatterns });
-            console.log(`  ✓ -> ${outputPath}`);
+            await logger.info(`[${i + 1}/${total}] 转换: ${name} ...`);
+            const outputPath = await convertMhtmlToCbz(files[i], { outputDir, renamePatterns, logger });
+            await logger.info(`  ✓ -> ${outputPath}`);
             succeeded.push(files[i]);
             success++;
         }
         catch (err) {
             const msg = err instanceof Error ? err.message : String(err);
-            console.error(`  ✗ ${name}: ${msg}`);
+            await logger.error(`  ✗ ${name}: ${msg}`);
             failed++;
         }
     }
     if (moveDir && succeeded.length > 0) {
-        await moveFiles(succeeded, moveDir);
+        await moveFiles(succeeded, moveDir, logger);
     }
-    console.log(`\n完成：${success} 成功，${failed} 失败`);
+    await logger.info(`\n完成：${success} 成功，${failed} 失败`);
+    await logger.close();
     if (failed > 0)
         process.exit(1);
 });

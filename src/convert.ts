@@ -3,10 +3,12 @@ import { basename, extname, join } from "node:path";
 import { parseMhtml } from "./mhtml-parser.js";
 import { extractImages } from "./image-extractor.js";
 import { createCbz } from "./cbz-packer.js";
+import type { Logger } from "./logger.js";
 
 export interface ConvertOptions {
   readonly outputDir: string;
   readonly renamePatterns?: readonly string[];
+  readonly logger?: Logger;
 }
 
 function cleanFileName(name: string, patterns: readonly string[]): string {

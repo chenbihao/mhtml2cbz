@@ -14,6 +14,7 @@
 - 支持单文件和批量转换
 - 转换完成后可自动将原文件移动到指定目录
 - 支持文件名清理，移除指定字符串
+- 支持日志记录功能，便于追踪转换过程
 
 ## 安装
 
@@ -71,6 +72,15 @@ mhtml2cbz "*.mhtml" -o ./输出目录
 # 转换后移动原文件到指定目录
 mhtml2cbz -o ./cbz输出 -m ./已转换
 
+# 启用日志记录（日志文件保存在当前目录，以时间命名）
+mhtml2cbz -o ./输出目录 -l
+
+# 指定日志目录（日志文件保存在指定目录，以时间命名）
+mhtml2cbz -o ./输出目录 -l ./logs/
+
+# 指定日志文件完整路径
+mhtml2cbz -o ./输出目录 -l ./logs/convert.log
+
 # 清理文件名（移除指定字符串）
 mhtml2cbz *.mhtml -o ./output -r "［XX漫画组］" -r "（高清）"
 ```
@@ -83,6 +93,7 @@ mhtml2cbz *.mhtml -o ./output -r "［XX漫画组］" -r "（高清）"
 | `-o, --output <dir>` | **（必填）** 输出目录 |
 | `-m, --move <dir>` | 转换成功后将原 MHTML 文件移动到指定目录 |
 | `-r, --rename <pattern>` | 移除文件名中的指定字符串（可多次使用，自动去除首尾空格） |
+| `-l, --log [path]` | 启用日志记录。可选参数：留空=当前目录+时间命名；`目录/`=指定目录+时间命名；完整路径=使用指定文件名 |
 | `-v, --version` | 显示版本号 |
 | `-h, --help` | 显示帮助信息 |
 
@@ -94,7 +105,8 @@ src/
 ├── convert.ts         # 转换编排逻辑
 ├── mhtml-parser.ts    # MHTML MIME 解析器
 ├── image-extractor.ts # 图片提取与排序
-└── cbz-packer.ts      # CBZ/ZIP 打包
+├── cbz-packer.ts      # CBZ/ZIP 打包
+└── logger.ts          # 日志记录模块
 ```
 
 ## 技术栈
