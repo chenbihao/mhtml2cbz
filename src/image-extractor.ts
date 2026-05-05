@@ -18,7 +18,44 @@ const EXTENSION_MAP: Record<string, string> = {
   "image/gif": ".gif",
   "image/jpg": ".jpg",
   "image/avif": ".avif",
+  "image/bmp": ".bmp",
+  "image/tiff": ".tiff",
+  "image/svg+xml": ".svg",
+  "image/x-icon": ".ico",
+  // 非标准但常见的类型
+  "binary/octet-stream": "", // 需要从 URL 推断
+  "application/octet-stream": "", // 需要从 URL 推断
 };
+
+const URL_EXTENSION_MAP: Record<string, string> = {
+  ".webp": ".webp",
+  ".png": ".png",
+  ".jpg": ".jpg",
+  ".jpeg": ".jpg",
+  ".gif": ".gif",
+  ".avif": ".avif",
+  ".bmp": ".bmp",
+  ".tiff": ".tiff",
+  ".tif": ".tiff",
+  ".svg": ".svg",
+  ".ico": ".ico",
+};
+
+function getMimeType(contentType: string): string {
+  const idx = contentType.indexOf(";");
+  return idx === -1 ? contentType.trim().toLowerCase() : contentType.slice(0, idx).trim().toLowerCase();
+}
+
+function getExtensionFromUrl(url: string): string {
+  try {
+    const urlObj = new URL(url);
+    const pathname = urlObj.pathname;
+    const ext = pathname.slice(pathname.lastIndexOf(".")).toLowerCase();
+    return URL_EXTENSION_MAP[ext] ?? ".bin";
+  } catch {
+    return ".bin";
+  }
+}
 
 function padNumber(n: number, width: number): string {
   return String(n).padStart(width, "0");
@@ -104,7 +141,14 @@ export function extractImages(doc: MhtmlDocument): readonly ExtractedImage[] {
       continue;
     }
 
-    const ext = EXTENSION_MAP[imagePart.contentType.toLowerCase()] ?? ".bin";
+    const mimeType = getMimeType(imagePart.contentType);
+    let ext = EXTENSION_MAP[mimeType] ?? ".bin";
+
+    // 如果 Content-Type 是通用二进制类型，尝试从 URL 扩展名推断
+    if (ext === "" && imagePart.contentLocation) {
+      ext = getExtensionFromUrl(imagePart.contentLocation);
+    }
+
     const filename = `${padNumber(images.length + 1, totalDigits)}${ext}`;
 
     images.push({
