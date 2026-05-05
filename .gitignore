@@ -1,0 +1,7 @@
+node_modules/
+dist/
+*.tgz
+output/
+测试文件/
+测试文件输出/
+.claude/

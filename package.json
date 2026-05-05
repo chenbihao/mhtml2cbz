@@ -1,0 +1,27 @@
+{
+  "name": "mhtml2cbz",
+  "version": "1.0.0",
+  "description": "将 MHTML 文件转换为 CBZ 漫画档案格式",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "mhtml2cbz": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts",
+    "start": "node dist/index.js"
+  },
+  "files": ["dist"],
+  "keywords": ["mhtml", "cbz", "comic", "converter"],
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^13.1.0",
+    "jszip": "^3.10.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0"
+  }
+}
